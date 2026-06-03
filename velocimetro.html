@@ -1,821 +1,486 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAMP HUD - Ultra Premium</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<title>HUD</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;background:transparent;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif}
+body{display:flex;align-items:flex-end;justify-content:flex-end;padding:0 28px 22px 0}
 
-        html, body {
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            overflow: hidden;
-            font-family: 'Rajdhani', sans-serif;
-        }
+/* ── CONTAINER PRINCIPAL ── */
+.hud{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:8px;
+}
 
-        body {
-            display: flex;
-            align-items: flex-end;
-            justify-content: flex-end;
-            padding: 40px;
-            gap: 24px;
-        }
+/* ── LINHA DE STATS (combustível + lataria) ── */
+.stats-row{
+  display:flex;
+  gap:8px;
+  align-items:stretch;
+}
 
-        /* ═══════════════════════════════════════════════════════════
-           VELOCÍMETRO PREMIUM
-        ═══════════════════════════════════════════════════════════ */
-        .speedometer-container {
-            position: relative;
-            width: 320px;
-            height: 200px;
-            perspective: 1000px;
-        }
+/* ── CARD BASE ── */
+.card{
+  background:rgba(4,6,16,0.85);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:16px;
+  position:relative;
+  overflow:hidden;
+}
+.card::before{
+  content:'';
+  position:absolute;inset:0;border-radius:16px;
+  background:linear-gradient(130deg,rgba(255,255,255,0.03) 0%,transparent 60%);
+  pointer-events:none;
+}
 
-        .speedometer-glass {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 150, 255, 0.04) 100%);
-            border: 2px solid rgba(0, 255, 136, 0.25);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            box-shadow: 
-                0 8px 32px rgba(0, 255, 136, 0.1),
-                inset 0 1px 2px rgba(255, 255, 255, 0.1),
-                inset 0 -1px 2px rgba(0, 0, 0, 0.3);
-        }
+/* ════════════════════════════════
+   VELOCÍMETRO PRINCIPAL
+════════════════════════════════ */
+.speedo-card{
+  padding:18px 20px 14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0;
+  width:240px;
+}
 
-        .speedometer-content {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            z-index: 2;
-        }
+.speedo-header{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+.speedo-label{
+  font-size:8px;
+  font-weight:700;
+  letter-spacing:3px;
+  color:rgba(255,255,255,0.25);
+}
+.speedo-max{
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:1px;
+  color:rgba(255,255,255,0.18);
+}
 
-        .speed-canvas-wrapper {
-            position: relative;
-            width: 260px;
-            height: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+/* canvas wrapper */
+.cv-wrap{
+  position:relative;
+  width:200px;
+  height:120px;
+}
+canvas#cv{display:block}
 
-        canvas#speedCanvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.15));
-        }
+/* número sobreposto */
+.speed-num{
+  position:absolute;
+  bottom:10px;
+  left:50%;
+  transform:translateX(-50%);
+  text-align:center;
+  pointer-events:none;
+  line-height:1;
+}
+#sv{
+  font-size:44px;
+  font-weight:900;
+  color:#fff;
+  letter-spacing:-3px;
+  font-variant-numeric:tabular-nums;
+  display:block;
+}
+.su{
+  font-size:8px;
+  font-weight:700;
+  letter-spacing:3.5px;
+  color:rgba(255,255,255,0.28);
+  margin-top:1px;
+  display:block;
+}
 
-        .speed-display-overlay {
-            position: absolute;
-            bottom: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            pointer-events: none;
-            z-index: 10;
-        }
+/* barra de velocidade fina */
+.speed-strip{
+  width:100%;
+  height:2px;
+  border-radius:1px;
+  background:rgba(255,255,255,0.05);
+  overflow:hidden;
+  margin-top:10px;
+}
+#speedStrip{
+  height:100%;
+  border-radius:1px;
+  transition:width .12s,background .5s;
+}
 
-        .speed-number {
-            font-size: 48px;
-            font-weight: 900;
-            color: #00ff88;
-            line-height: 1;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -2px;
-            text-shadow: 
-                0 0 15px rgba(0, 255, 136, 0.8),
-                0 0 30px rgba(0, 255, 136, 0.4);
-            font-family: 'Orbitron', monospace;
-        }
+/* ════════════════════════════════
+   MARCHA (dentro do speedo)
+════════════════════════════════ */
+.gear-float{
+  position:absolute;
+  bottom:14px;
+  right:14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+}
+.gear-label-sm{
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:rgba(255,255,255,0.2);
+}
+#gearNum{
+  font-size:22px;
+  font-weight:900;
+  line-height:1;
+  color:#fff;
+  transition:color .2s;
+}
 
-        .speed-unit {
-            font-size: 9px;
-            color: rgba(0, 255, 136, 0.5);
-            letter-spacing: 3px;
-            margin-top: 1px;
-            font-weight: 700;
-            text-transform: uppercase;
-            text-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
-        }
+/* ════════════════════════════════
+   COMBUSTÍVEL
+════════════════════════════════ */
+.fuel-card{
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
+  width:56px;
+}
+.stat-lbl{
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:rgba(255,255,255,0.22);
+}
+.fuel-track{
+  flex:1;
+  width:14px;
+  border-radius:7px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.08);
+  position:relative;
+  overflow:hidden;
+  min-height:70px;
+}
+.fuel-seg{
+  position:absolute;
+  width:100%;
+  height:1px;
+  background:rgba(0,0,0,0.6);
+}
+#fuelFill{
+  position:absolute;
+  bottom:0;
+  width:100%;
+  border-radius:6px;
+  transition:height .6s cubic-bezier(.4,0,.2,1),background .6s;
+}
+#fuelPct{
+  font-size:10px;
+  font-weight:800;
+  color:#fff;
+  transition:color .5s;
+}
+.fuel-ico{font-size:10px}
 
-        /* ═══════════════════════════════════════════════════════════
-           MARCHA PREMIUM
-        ═══════════════════════════════════════════════════════════ */
-        .gear-container {
-            position: relative;
-            width: 110px;
-            height: 200px;
-            perspective: 1000px;
-        }
-
-        .gear-glass {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 150, 255, 0.04) 100%);
-            border: 2px solid rgba(0, 255, 136, 0.25);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            box-shadow: 
-                0 8px 32px rgba(0, 255, 136, 0.1),
-                inset 0 1px 2px rgba(255, 255, 255, 0.1),
-                inset 0 -1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .gear-content {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            z-index: 2;
-        }
-
-        .gear-label {
-            font-size: 9px;
-            color: rgba(0, 255, 136, 0.6);
-            letter-spacing: 2.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            text-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
-        }
-
-        .gear-display-box {
-            width: 78px;
-            height: 78px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid rgba(0, 255, 136, 0.3);
-            border-radius: 12px;
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05) 0%, rgba(0, 100, 200, 0.03) 100%);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .gear-display-box::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, rgba(0, 255, 136, 0.1), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .gear-display-box.active {
-            border-color: rgba(0, 255, 136, 0.8);
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 100, 200, 0.08) 100%);
-            box-shadow: 
-                0 0 25px rgba(0, 255, 136, 0.4),
-                inset 0 0 15px rgba(0, 255, 136, 0.1);
-        }
-
-        .gear-display-box.active::before {
-            opacity: 1;
-        }
-
-        .gear-number {
-            font-size: 48px;
-            font-weight: 900;
-            color: rgba(0, 255, 136, 0.3);
-            line-height: 1;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            font-family: 'Orbitron', monospace;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            position: relative;
-            z-index: 2;
-        }
-
-        .gear-display-box.active .gear-number {
-            color: #00ff88;
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
-            transform: scale(1.05);
-        }
-
-        .gear-indicators {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-        }
-
-        .gear-indicator-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(0, 255, 136, 0.15);
-            transition: all 0.3s ease;
-            box-shadow: 0 0 8px rgba(0, 255, 136, 0);
-            border: 1px solid rgba(0, 255, 136, 0.2);
-        }
-
-        .gear-indicator-dot.active {
-            background: #00ff88;
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.8);
-            border-color: rgba(0, 255, 136, 0.8);
-            transform: scale(1.2);
-        }
-
-        /* ═══════════════════════════════════════════════════════════
-           COMBUSTÍVEL PREMIUM
-        ═══════════════════════════════════════════════════════════ */
-        .fuel-container {
-            position: relative;
-            width: 100px;
-            height: 200px;
-            perspective: 1000px;
-        }
-
-        .fuel-glass {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 150, 255, 0.04) 100%);
-            border: 2px solid rgba(0, 255, 136, 0.25);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            box-shadow: 
-                0 8px 32px rgba(0, 255, 136, 0.1),
-                inset 0 1px 2px rgba(255, 255, 255, 0.1),
-                inset 0 -1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .fuel-content {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            z-index: 2;
-        }
-
-        .fuel-label {
-            font-size: 9px;
-            color: rgba(0, 255, 136, 0.6);
-            letter-spacing: 2.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            text-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
-        }
-
-        .fuel-bar-wrapper {
-            width: 36px;
-            height: 120px;
-            border: 2px solid rgba(0, 255, 136, 0.3);
-            border-radius: 8px;
-            overflow: hidden;
-            background: linear-gradient(180deg, rgba(0, 100, 200, 0.1) 0%, rgba(0, 50, 100, 0.15) 100%);
-            position: relative;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
-        }
-
-        .fuel-bar-fill {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to top, #00ff88, #00dd66);
-            transition: height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-        }
-
-        .fuel-bar-fill.warning {
-            background: linear-gradient(to top, #ffbb00, #ffdd00);
-            box-shadow: 0 0 20px rgba(255, 187, 0, 0.5);
-        }
-
-        .fuel-bar-fill.critical {
-            background: linear-gradient(to top, #ff3333, #ff6666);
-            box-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
-        }
-
-        .fuel-percentage {
-            font-size: 12px;
-            font-weight: 700;
-            color: #00ff88;
-            text-align: center;
-            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-            transition: color 0.3s ease;
-            font-family: 'Orbitron', monospace;
-        }
-
-        .fuel-icon {
-            font-size: 20px;
-            transition: transform 0.3s ease;
-        }
-
-        .fuel-icon.warning {
-            animation: pulse-warning 0.8s infinite;
-        }
-
-        @keyframes pulse-warning {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
-        /* ═══════════════════════════════════════════════════════════
-           LATARIA PREMIUM
-        ═══════════════════════════════════════════════════════════ */
-        .body-container {
-            position: relative;
-            width: 130px;
-            height: 200px;
-            perspective: 1000px;
-        }
-
-        .body-glass {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 150, 255, 0.04) 100%);
-            border: 2px solid rgba(0, 255, 136, 0.25);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            box-shadow: 
-                0 8px 32px rgba(0, 255, 136, 0.1),
-                inset 0 1px 2px rgba(255, 255, 255, 0.1),
-                inset 0 -1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        .body-content {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            z-index: 2;
-        }
-
-        .body-label {
-            font-size: 9px;
-            color: rgba(0, 255, 136, 0.6);
-            letter-spacing: 2.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            text-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
-        }
-
-        .car-icon-wrapper {
-            width: 80px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.15));
-        }
-
-        .car-icon-wrapper svg {
-            width: 100%;
-            height: 100%;
-            transition: filter 0.4s ease;
-        }
-
-        .body-percentage {
-            font-size: 13px;
-            font-weight: 700;
-            color: #00ff88;
-            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-            transition: color 0.3s ease;
-            font-family: 'Orbitron', monospace;
-        }
-
-        .body-bar-wrapper {
-            width: 90px;
-            height: 4px;
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 2px;
-            overflow: hidden;
-            background: linear-gradient(90deg, rgba(0, 100, 200, 0.1) 0%, rgba(0, 50, 100, 0.15) 100%);
-        }
-
-        .body-bar-fill {
-            height: 100%;
-            background: linear-gradient(to right, #00ff88, #00dd66);
-            transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.4s ease;
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
-        }
-
-        .body-bar-fill.warning {
-            background: linear-gradient(to right, #ffbb00, #ffdd00);
-            box-shadow: 0 0 15px rgba(255, 187, 0, 0.5);
-        }
-
-        .body-bar-fill.critical {
-            background: linear-gradient(to right, #ff3333, #ff6666);
-            box-shadow: 0 0 15px rgba(255, 51, 51, 0.5);
-        }
-
-        /* ═══════════════════════════════════════════════════════════
-           RESPONSIVIDADE
-        ═══════════════════════════════════════════════════════════ */
-        @media (max-width: 1200px) {
-            body {
-                padding: 30px;
-                gap: 18px;
-            }
-
-            .speedometer-container {
-                width: 280px;
-                height: 180px;
-            }
-
-            .speed-number {
-                font-size: 52px;
-            }
-
-            .gear-container,
-            .fuel-container,
-            .body-container {
-                height: 180px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 20px;
-                gap: 12px;
-                flex-wrap: wrap;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .speedometer-container {
-                width: 240px;
-                height: 160px;
-            }
-
-            .speed-number {
-                font-size: 44px;
-            }
-
-            .gear-container,
-            .fuel-container,
-            .body-container {
-                width: 90px;
-                height: 160px;
-            }
-        }
-    </style>
+/* ════════════════════════════════
+   LATARIA
+════════════════════════════════ */
+.body-card{
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
+  width:70px;
+}
+.car-svg-wrap{
+  display:flex;
+  justify-content:center;
+}
+.dmg-arc-wrap{
+  width:44px;height:44px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+canvas#cvBody{display:block}
+.body-num-wrap{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;
+}
+#bodyPct{
+  font-size:13px;
+  font-weight:900;
+  color:#fff;
+  line-height:1;
+  transition:color .4s;
+}
+.body-sub2{
+  font-size:6px;
+  font-weight:700;
+  letter-spacing:1px;
+  color:rgba(255,255,255,0.2);
+  margin-top:1px;
+}
+</style>
 </head>
 <body>
+<div class="hud">
 
-    <!-- VELOCÍMETRO -->
-    <div class="speedometer-container">
-        <div class="speedometer-glass"></div>
-        <div class="speedometer-content">
-            <div class="speed-canvas-wrapper">
-                <canvas id="speedCanvas" width="260" height="140"></canvas>
-                <div class="speed-display-overlay">
-                    <div class="speed-number" id="speedValue">0</div>
-                    <div class="speed-unit">KM/H</div>
-                </div>
-            </div>
-        </div>
+  <!-- VELOCÍMETRO -->
+  <div class="card speedo-card">
+    <div class="speedo-header">
+      <span class="speedo-label">VELOCIDADE</span>
+      <span class="speedo-max">MAX 220</span>
     </div>
 
-    <!-- MARCHA -->
-    <div class="gear-container">
-        <div class="gear-glass"></div>
-        <div class="gear-content">
-            <div class="gear-label">MARCHA</div>
-            <div class="gear-display-box" id="gearBox">
-                <div class="gear-number" id="gearValue">N</div>
-            </div>
-            <div class="gear-indicators" id="gearIndicators">
-                <div class="gear-indicator-dot" data-gear="1"></div>
-                <div class="gear-indicator-dot" data-gear="2"></div>
-                <div class="gear-indicator-dot" data-gear="3"></div>
-                <div class="gear-indicator-dot" data-gear="4"></div>
-                <div class="gear-indicator-dot" data-gear="5"></div>
-                <div class="gear-indicator-dot" data-gear="6"></div>
-            </div>
-        </div>
+    <div class="cv-wrap">
+      <canvas id="cv" width="200" height="120"></canvas>
+      <div class="speed-num">
+        <span id="sv">0</span>
+        <span class="su">KM/H</span>
+      </div>
+      <!-- marcha flutuante -->
+      <div class="gear-float">
+        <span class="gear-label-sm">MARCHA</span>
+        <span id="gearNum">N</span>
+      </div>
     </div>
+
+    <div class="speed-strip">
+      <div id="speedStrip"></div>
+    </div>
+  </div>
+
+  <!-- STATS ABAIXO -->
+  <div class="stats-row">
 
     <!-- COMBUSTÍVEL -->
-    <div class="fuel-container">
-        <div class="fuel-glass"></div>
-        <div class="fuel-content">
-            <div class="fuel-label">FUEL</div>
-            <div class="fuel-bar-wrapper">
-                <div class="fuel-bar-fill" id="fuelBar"></div>
-            </div>
-            <div class="fuel-icon" id="fuelIcon">⛽</div>
-            <div class="fuel-percentage" id="fuelPercentage">100%</div>
-        </div>
+    <div class="card fuel-card">
+      <div class="stat-lbl">FUEL</div>
+      <div class="fuel-track">
+        <div class="fuel-seg" style="bottom:25%"></div>
+        <div class="fuel-seg" style="bottom:50%"></div>
+        <div class="fuel-seg" style="bottom:75%"></div>
+        <div id="fuelFill"></div>
+      </div>
+      <div class="fuel-ico" id="fuelIco">⛽</div>
+      <div id="fuelPct">100%</div>
     </div>
 
     <!-- LATARIA -->
-    <div class="body-container">
-        <div class="body-glass"></div>
-        <div class="body-content">
-            <div class="body-label">LATARIA</div>
-            <div class="car-icon-wrapper">
-                <svg id="carIcon" viewBox="0 0 80 50" fill="none">
-                    <!-- Carroceria -->
-                    <path id="carBody" d="M 8 32 L 14 18 L 22 12 L 58 12 L 66 18 L 72 32 L 72 38 L 8 38 Z" 
-                          fill="#00ff88" stroke="rgba(0,255,136,0.6)" stroke-width="1.4" stroke-linejoin="round"/>
-                    
-                    <!-- Rodas -->
-                    <circle cx="22" cy="38" r="7" fill="#0a0a1a" stroke="#00ff88" stroke-width="2"/>
-                    <circle cx="58" cy="38" r="7" fill="#0a0a1a" stroke="#00ff88" stroke-width="2"/>
-                    
-                    <!-- Aro das rodas -->
-                    <circle cx="22" cy="38" r="4" fill="none" stroke="#00ff88" stroke-width="1.2" opacity="0.8"/>
-                    <circle cx="58" cy="38" r="4" fill="none" stroke="#00ff88" stroke-width="1.2" opacity="0.8"/>
-                    
-                    <!-- Janelas -->
-                    <rect x="18" y="14" width="18" height="10" rx="2" fill="rgba(0,255,136,0.2)" stroke="rgba(0,255,136,0.4)" stroke-width="1"/>
-                    <rect x="38" y="14" width="20" height="10" rx="2" fill="rgba(0,255,136,0.2)" stroke="rgba(0,255,136,0.4)" stroke-width="1"/>
-                    
-                    <!-- Farol dianteiro -->
-                    <rect x="8" y="28" width="10" height="5" rx="2" fill="#ffff00" opacity="0.9"/>
-                    <!-- Luz traseira -->
-                    <rect x="62" y="28" width="10" height="5" rx="2" fill="#ff4444" opacity="0.9"/>
-                    
-                    <!-- Detalhes aerodinâmicos -->
-                    <line x1="40" y1="12" x2="40" y2="32" stroke="rgba(0,255,136,0.2)" stroke-width="0.8"/>
-                </svg>
-            </div>
-            <div class="body-percentage" id="bodyPercentage">100%</div>
-            <div class="body-bar-wrapper">
-                <div class="body-bar-fill" id="bodyBar"></div>
-            </div>
+    <div class="card body-card">
+      <div class="stat-lbl">LATARIA</div>
+      <div class="dmg-arc-wrap">
+        <canvas id="cvBody" width="44" height="44"></canvas>
+        <div class="body-num-wrap">
+          <span id="bodyPct">100%</span>
+          <span class="body-sub2">INT</span>
         </div>
+      </div>
+      <!-- mini car icon -->
+      <svg width="44" height="22" viewBox="0 0 44 22" fill="none">
+        <path id="carBody" d="M2 16 L5 10 L11 5 L33 5 L39 10 L42 16 L42 19 L2 19Z"
+              fill="#00d4ff" stroke="rgba(0,212,255,0.15)" stroke-width="0.5"/>
+        <circle cx="11" cy="19" r="3.5" fill="#080c1a" stroke="#1a1f30" stroke-width="1"/>
+        <circle cx="33" cy="19" r="3.5" fill="#080c1a" stroke="#1a1f30" stroke-width="1"/>
+        <rect x="9"  y="6" width="9"  height="5" rx="1" fill="rgba(0,200,255,0.28)"/>
+        <rect x="20" y="6" width="10" height="5" rx="1" fill="rgba(0,200,255,0.28)"/>
+        <rect x="2"  y="13" width="4" height="2" rx="1" fill="#ffe060" opacity="0.6"/>
+        <rect x="38" y="13" width="4" height="2" rx="1" fill="#ff4444" opacity="0.6"/>
+      </svg>
+      <div id="bodyPct2" style="font-size:10px;font-weight:800;color:#fff;transition:color .4s">100%</div>
     </div>
 
-    <script>
-        /* ═════════════════════════════════════════════════════════════
-           CONFIGURAÇÃO
-        ═════════════════════════════════════════════════════════════ */
-        const MAX_SPEED = 220;
+  </div>
+</div>
 
-        /* ═════════════════════════════════════════════════════════════
-           ESTADO
-        ═════════════════════════════════════════════════════════════ */
-        let state = { speed: 0, gear: 0, fuel: 100, body: 100 };
+<script>
+/* ─── CONSTANTES ─── */
+const MAXV = 220;
 
-        function parseURL() {
-            const params = new URLSearchParams(window.location.search);
-            state.speed = parseInt(params.get('v')) || 0;
-            state.gear = parseInt(params.get('g')) || 0;
-            state.fuel = parseInt(params.get('f')) || 100;
-            state.body = parseInt(params.get('b')) || 100;
-        }
+/* ─── ESTADO ─── */
+var S = { speed:0, gear:0, fuel:100, body:100 };
+var A = { speed:0 };
 
-        /* ═════════════════════════════════════════════════════════════
-           VELOCÍMETRO (CANVAS)
-        ═════════════════════════════════════════════════════════════ */
-        const canvas = document.getElementById('speedCanvas');
-        const ctx = canvas.getContext('2d');
-        const W = 260, H = 140;
-        const cx = W / 2, cy = H - 12, R = 105;
-        const startAngle = Math.PI * 1.08;
-        const endAngle = Math.PI * 1.92;
-        let animatedSpeed = 0, targetSpeed = 0;
+function parseURL(){
+  var q = window.location.search, m;
+  m=q.match(/[?&]v=(\d+)/); if(m) S.speed=parseInt(m[1])||0;
+  m=q.match(/[?&]g=(\d+)/); if(m) S.gear =parseInt(m[1])||0;
+  m=q.match(/[?&]f=(\d+)/); if(m) S.fuel =parseInt(m[1])||100;
+  m=q.match(/[?&]b=(\d+)/); if(m) S.body =parseInt(m[1])||100;
+}
 
-        function drawSpeedometer(speed) {
-            ctx.clearRect(0, 0, W, H);
-            
-            const fraction = Math.min(speed / MAX_SPEED, 1);
-            const angleRange = endAngle - startAngle;
-            const currentAngle = startAngle + angleRange * fraction;
+/* ─── VELOCÍMETRO ─── */
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+var W=200,H=120,CX=W/2,CY=H+4;
+var R=98, SA=Math.PI*1.08, EA=Math.PI*1.92, AR=EA-SA;
 
-            // Trilha de fundo com gradiente
-            const gradientTrack = ctx.createLinearGradient(cx - R, cy, cx + R, cy);
-            gradientTrack.addColorStop(0, 'rgba(0, 255, 136, 0.05)');
-            gradientTrack.addColorStop(0.5, 'rgba(0, 255, 136, 0.12)');
-            gradientTrack.addColorStop(1, 'rgba(0, 255, 136, 0.05)');
+function drawSpeedo(spd){
+  ctx.clearRect(0,0,W,H);
+  var f=Math.min(spd/MAXV,1);
 
-            ctx.beginPath();
-            ctx.arc(cx, cy, R, startAngle, endAngle);
-            ctx.strokeStyle = gradientTrack;
-            ctx.lineWidth = 16;
-            ctx.lineCap = 'round';
-            ctx.stroke();
+  /* fundo do arco */
+  ctx.beginPath(); ctx.arc(CX,CY,R,SA,EA);
+  ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=14; ctx.lineCap='round'; ctx.stroke();
 
-            // Arco colorido dinâmico com transição suave
-            if (fraction > 0) {
-                let hue = 120; // Verde
-                if (fraction > 0.5) hue = 60 - (fraction - 0.5) * 120; // Amarelo
-                if (fraction > 0.8) hue = 0; // Vermelho
+  /* arco secundário (brilho interno) */
+  ctx.beginPath(); ctx.arc(CX,CY,R-8,SA,EA);
+  ctx.strokeStyle='rgba(255,255,255,0.02)'; ctx.lineWidth=4; ctx.lineCap='round'; ctx.stroke();
 
-                ctx.beginPath();
-                ctx.arc(cx, cy, R, startAngle, currentAngle);
-                ctx.strokeStyle = `hsl(${hue}, 100%, 52%)`;
-                ctx.lineWidth = 16;
-                ctx.lineCap = 'round';
-                ctx.shadowColor = `hsl(${hue}, 100%, 52%)`;
-                ctx.shadowBlur = 25;
-                ctx.stroke();
-                ctx.shadowColor = 'transparent';
-            }
+  /* arco de velocidade */
+  if(f>0){
+    var hue = f<0.5 ? 165 : f<0.75 ? 165-(f-0.5)/0.25*120 : 45-(f-0.75)/0.25*45;
+    var grad=ctx.createLinearGradient(
+      CX+Math.cos(SA)*R, CY+Math.sin(SA)*R,
+      CX+Math.cos(SA+AR*f)*R, CY+Math.sin(SA+AR*f)*R
+    );
+    grad.addColorStop(0,'hsl('+(hue+30)+',100%,55%)');
+    grad.addColorStop(1,'hsl('+hue+',100%,60%)');
+    ctx.beginPath(); ctx.arc(CX,CY,R,SA,SA+AR*f);
+    ctx.strokeStyle=grad; ctx.lineWidth=14; ctx.lineCap='round'; ctx.stroke();
 
-            // Ticks e números
-            for (let i = 0; i <= 24; i++) {
-                const angle = startAngle + angleRange * (i / 24);
-                const isMajor = i % 2 === 0;
+    /* glow na ponta */
+    var ta=SA+AR*f;
+    var tx=CX+Math.cos(ta)*R, ty=CY+Math.sin(ta)*R;
+    var g2=ctx.createRadialGradient(tx,ty,0,tx,ty,18);
+    g2.addColorStop(0,'hsla('+hue+',100%,70%,0.5)');
+    g2.addColorStop(1,'transparent');
+    ctx.beginPath(); ctx.arc(tx,ty,18,0,Math.PI*2);
+    ctx.fillStyle=g2; ctx.fill();
+  }
 
-                // Tick
-                ctx.beginPath();
-                ctx.moveTo(
-                    cx + Math.cos(angle) * (R - 20),
-                    cy + Math.sin(angle) * (R - 20)
-                );
-                ctx.lineTo(
-                    cx + Math.cos(angle) * (R - 28),
-                    cy + Math.sin(angle) * (R - 28)
-                );
-                ctx.strokeStyle = isMajor ? 'rgba(0, 255, 136, 0.8)' : 'rgba(0, 255, 136, 0.25)';
-                ctx.lineWidth = isMajor ? 2.2 : 1;
-                ctx.lineCap = 'round';
-                ctx.stroke();
+  /* ticks */
+  var steps=22;
+  for(var i=0;i<=steps;i++){
+    var a=SA+AR*(i/steps), major=(i%2===0);
+    var rI=R-(major?20:16), rO=R-14;
+    ctx.beginPath();
+    ctx.moveTo(CX+Math.cos(a)*rO, CY+Math.sin(a)*rO);
+    ctx.lineTo(CX+Math.cos(a)*rI, CY+Math.sin(a)*rI);
+    ctx.strokeStyle=major?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.12)';
+    ctx.lineWidth=major?1.5:0.7; ctx.stroke();
+    if(major){
+      ctx.fillStyle='rgba(255,255,255,0.32)';
+      ctx.font='600 7px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(Math.round(i/steps*MAXV/20)*20,
+        CX+Math.cos(a)*(R-30), CY+Math.sin(a)*(R-30));
+    }
+  }
 
-                // Número
-                if (isMajor) {
-                    const speedValue = Math.round(i / 24 * MAX_SPEED / 10) * 10;
-                    ctx.fillStyle = 'rgba(0, 255, 136, 0.7)';
-                    ctx.font = 'bold 12px Rajdhani';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(
-                        speedValue,
-                        cx + Math.cos(angle) * (R - 42),
-                        cy + Math.sin(angle) * (R - 42)
-                    );
-                }
-            }
+  /* ponteiro */
+  var na=SA+AR*f;
+  ctx.save(); ctx.translate(CX,CY); ctx.rotate(na);
+  ctx.shadowColor='rgba(255,255,255,0.2)'; ctx.shadowBlur=8;
+  ctx.beginPath(); ctx.moveTo(-8,0); ctx.lineTo(R-24,0);
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-8,0); ctx.lineTo(-22,0);
+  ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.restore(); ctx.shadowBlur=0;
 
-            // Ponteiro com efeito
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(currentAngle);
-            
-            ctx.shadowColor = 'rgba(0, 255, 136, 0.8)';
-            ctx.shadowBlur = 15;
-            ctx.beginPath();
-            ctx.moveTo(-8, 0);
-            ctx.lineTo(R - 28, 0);
-            ctx.strokeStyle = '#00ff88';
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.stroke();
+  /* pivot */
+  ctx.beginPath(); ctx.arc(CX,CY,6,0,Math.PI*2);
+  ctx.fillStyle='#fff'; ctx.fill();
+  ctx.beginPath(); ctx.arc(CX,CY,3,0,Math.PI*2);
+  ctx.fillStyle='#04060f'; ctx.fill();
+}
 
-            ctx.shadowColor = 'transparent';
-            ctx.beginPath();
-            ctx.moveTo(-8, 0);
-            ctx.lineTo(-22, 0);
-            ctx.strokeStyle = 'rgba(0, 255, 136, 0.4)';
-            ctx.lineWidth = 1.8;
-            ctx.stroke();
+/* ─── LATARIA (arc circular) ─── */
+var cvB=document.getElementById('cvBody'), ctxB=cvB.getContext('2d');
+var BW=44, BH=44, BCX=22, BCY=22, BR=17;
 
-            ctx.restore();
+function drawBody(pct){
+  ctxB.clearRect(0,0,BW,BH);
+  var f=Math.min(pct/100,1);
+  var col = pct>60?'#00d4ff': pct>30?'#ffcc00':'#ff3a3a';
 
-            // Centro do velocímetro
-            ctx.beginPath();
-            ctx.arc(cx, cy, 8, 0, Math.PI * 2);
-            ctx.fillStyle = '#00ff88';
-            ctx.fill();
-            ctx.shadowColor = 'rgba(0, 255, 136, 0.8)';
-            ctx.shadowBlur = 15;
-            ctx.beginPath();
-            ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
-            ctx.fillStyle = '#0a0a1a';
-            ctx.fill();
-            ctx.shadowColor = 'transparent';
-        }
+  /* fundo */
+  ctxB.beginPath(); ctxB.arc(BCX,BCY,BR,-Math.PI*0.75,Math.PI*0.75);
+  ctxB.strokeStyle='rgba(255,255,255,0.06)'; ctxB.lineWidth=4; ctxB.lineCap='round'; ctxB.stroke();
 
-        /* ═════════════════════════════════════════════════════════════
-           MARCHA
-        ═════════════════════════════════════════════════════════════ */
-        function updateGear(gear) {
-            const labels = ['N', '1', '2', '3', '4', '5', '6'];
-            const gearBox = document.getElementById('gearBox');
-            const gearValue = document.getElementById('gearValue');
+  /* arco de integridade */
+  if(f>0){
+    var range=Math.PI*1.5;
+    ctxB.beginPath();
+    ctxB.arc(BCX,BCY,BR,-Math.PI*0.75,-Math.PI*0.75+range*f);
+    ctxB.strokeStyle=col; ctxB.lineWidth=4; ctxB.lineCap='round'; ctxB.stroke();
+  }
 
-            gearValue.textContent = labels[gear] || 'N';
+  /* atualiza textos e cor do carro */
+  document.getElementById('bodyPct').style.color=col;
+  document.getElementById('bodyPct2').textContent=Math.round(pct)+'%';
+  document.getElementById('bodyPct2').style.color=col;
+  var carPath=document.getElementById('carBody');
+  if(pct>60) carPath.setAttribute('fill','#00d4ff');
+  else if(pct>30) carPath.setAttribute('fill','#cc8800');
+  else carPath.setAttribute('fill','#991111');
+}
 
-            if (gear > 0) {
-                gearBox.classList.add('active');
-            } else {
-                gearBox.classList.remove('active');
-            }
+/* ─── MARCHA ─── */
+var GC=['rgba(255,255,255,0.2)','#1aff9c','#00d4ff','#00d4ff','#ffcc00','#ff8c00','#ff3a3a'];
+var GL=['N','1','2','3','4','5','6'];
 
-            document.querySelectorAll('.gear-indicator-dot').forEach(dot => {
-                const dotGear = parseInt(dot.dataset.gear);
-                if (dotGear <= gear && gear > 0) {
-                    dot.classList.add('active');
-                } else {
-                    dot.classList.remove('active');
-                }
-            });
-        }
+function updateGear(g){
+  var c=GC[g]||'#fff';
+  document.getElementById('gearNum').textContent=GL[g]||'N';
+  document.getElementById('gearNum').style.color=c;
+}
 
-        /* ═════════════════════════════════════════════════════════════
-           COMBUSTÍVEL
-        ═════════════════════════════════════════════════════════════ */
-        function updateFuel(percentage) {
-            const fuelBar = document.getElementById('fuelBar');
-            const fuelPercentage = document.getElementById('fuelPercentage');
-            const fuelIcon = document.getElementById('fuelIcon');
+/* ─── COMBUSTÍVEL ─── */
+function updateFuel(pct){
+  var bar=document.getElementById('fuelFill');
+  var lbl=document.getElementById('fuelPct');
+  bar.style.height=Math.max(pct,0)+'%';
+  if(pct>50){ bar.style.background='linear-gradient(to top,#00a854,#1aff9c)'; lbl.style.color='#1aff9c'; }
+  else if(pct>20){ bar.style.background='linear-gradient(to top,#996200,#ffcc00)'; lbl.style.color='#ffcc00'; }
+  else { bar.style.background='linear-gradient(to top,#880000,#ff3a3a)'; lbl.style.color='#ff3a3a'; }
+  document.getElementById('fuelIco').textContent=pct<=15?'⚠️':'⛽';
+  lbl.textContent=Math.round(pct)+'%';
+}
 
-            fuelBar.style.height = Math.max(percentage, 0) + '%';
-            fuelPercentage.textContent = Math.round(percentage) + '%';
+/* ─── BARRA DE VELOCIDADE ─── */
+function updateStrip(spd){
+  var f=Math.min(spd/MAXV,1);
+  var hue=f<0.5?165:f<0.75?165-(f-0.5)/0.25*120:45-(f-0.75)/0.25*45;
+  var strip=document.getElementById('speedStrip');
+  strip.style.width=(f*100)+'%';
+  strip.style.background='hsl('+hue+',100%,60%)';
+}
 
-            fuelBar.classList.remove('warning', 'critical');
+/* ─── LOOP ─── */
+function tick(){
+  parseURL();
+  A.speed+=(S.speed-A.speed)*0.14;
+  drawSpeedo(A.speed);
+  document.getElementById('sv').textContent=Math.round(A.speed);
+  updateStrip(A.speed);
+  updateGear(S.gear);
+  updateFuel(S.fuel);
+  drawBody(S.body);
+  requestAnimationFrame(tick);
+}
 
-            if (percentage > 50) {
-                fuelPercentage.style.color = '#00ff88';
-                fuelIcon.textContent = '⛽';
-                fuelIcon.classList.remove('warning');
-            } else if (percentage > 20) {
-                fuelBar.classList.add('warning');
-                fuelPercentage.style.color = '#ffbb00';
-                fuelIcon.textContent = '⛽';
-                fuelIcon.classList.remove('warning');
-            } else {
-                fuelBar.classList.add('critical');
-                fuelPercentage.style.color = '#ff3333';
-                fuelIcon.textContent = '⚠️';
-                fuelIcon.classList.add('warning');
-            }
-        }
-
-        /* ═════════════════════════════════════════════════════════════
-           LATARIA
-        ═════════════════════════════════════════════════════════════ */
-        function updateBody(percentage) {
-            const bodyBar = document.getElementById('bodyBar');
-            const bodyPercentage = document.getElementById('bodyPercentage');
-            const carBody = document.getElementById('carBody');
-
-            bodyBar.style.width = Math.max(percentage, 0) + '%';
-            bodyPercentage.textContent = Math.round(percentage) + '%';
-
-            bodyBar.classList.remove('warning', 'critical');
-
-            if (percentage > 60) {
-                bodyPercentage.style.color = '#00ff88';
-                carBody.setAttribute('fill', '#00ff88');
-            } else if (percentage > 30) {
-                bodyBar.classList.add('warning');
-                bodyPercentage.style.color = '#ffbb00';
-                carBody.setAttribute('fill', '#ffbb00');
-            } else {
-                bodyBar.classList.add('critical');
-                bodyPercentage.style.color = '#ff3333';
-                carBody.setAttribute('fill', '#ff3333');
-            }
-        }
-
-        /* ═════════════════════════════════════════════════════════════
-           LOOP DE ANIMAÇÃO
-        ═════════════════════════════════════════════════════════════ */
-        function animate() {
-            parseURL();
-            targetSpeed = state.speed;
-
-            // Suavização do ponteiro
-            animatedSpeed += (targetSpeed - animatedSpeed) * 0.08;
-            
-            drawSpeedometer(animatedSpeed);
-            document.getElementById('speedValue').textContent = Math.round(animatedSpeed);
-
-            updateGear(state.gear);
-            updateFuel(state.fuel);
-            updateBody(state.body);
-
-            requestAnimationFrame(animate);
-        }
-
-        // Inicialização
-        parseURL();
-        animatedSpeed = state.speed;
-        updateGear(state.gear);
-        updateFuel(state.fuel);
-        updateBody(state.body);
-        animate();
-    </script>
-
+parseURL();
+A.speed=S.speed;
+drawSpeedo(A.speed);
+updateGear(S.gear);
+updateFuel(S.fuel);
+drawBody(S.body);
+requestAnimationFrame(tick);
+</script>
 </body>
 </html>
