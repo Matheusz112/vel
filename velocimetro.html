@@ -2,240 +2,93 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>HUD</title>
+<title>HUD Premium</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;background:transparent;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif}
 body{display:flex;align-items:flex-end;justify-content:flex-end;padding:0 28px 22px 0}
 
-/* ── CONTAINER PRINCIPAL ── */
-.hud{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:8px;
-}
+.hud{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
 
-/* ── LINHA DE STATS (combustível + lataria) ── */
-.stats-row{
-  display:flex;
-  gap:8px;
-  align-items:stretch;
-}
+.stats-row{display:flex;gap:10px;align-items:stretch}
 
-/* ── CARD BASE ── */
-.card{
-  background:rgba(4,6,16,0.85);
-  border:1px solid rgba(255,255,255,0.06);
-  border-radius:16px;
-  position:relative;
-  overflow:hidden;
+/* CARD TRANSPARENTE */
+.card {
+  background: transparent; /* Menu totalmente transparente */
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(2px); /* Leve desfoque para não perder o contraste com o mapa/jogo */
 }
 .card::before{
-  content:'';
-  position:absolute;inset:0;border-radius:16px;
-  background:linear-gradient(130deg,rgba(255,255,255,0.03) 0%,transparent 60%);
+  content:'';position:absolute;inset:0;border-radius:16px;
+  background:linear-gradient(130deg,rgba(255,255,255,0.05) 0%,transparent 60%);
   pointer-events:none;
 }
 
-/* ════════════════════════════════
-   VELOCÍMETRO PRINCIPAL
-════════════════════════════════ */
-.speedo-card{
-  padding:18px 20px 14px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:0;
-  width:240px;
-}
-
-.speedo-header{
-  width:100%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:10px;
-}
-.speedo-label{
-  font-size:8px;
-  font-weight:700;
-  letter-spacing:3px;
-  color:rgba(255,255,255,0.25);
-}
-.speedo-max{
-  font-size:8px;
-  font-weight:600;
-  letter-spacing:1px;
-  color:rgba(255,255,255,0.18);
-}
-
-/* canvas wrapper */
-.cv-wrap{
-  position:relative;
-  width:200px;
-  height:120px;
-}
+/* ── VELOCÍMETRO ── */
+.speedo-card{padding:18px 20px 14px;display:flex;flex-direction:column;align-items:center;width:240px}
+.speedo-header{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.speedo-label{font-size:9px;font-weight:700;letter-spacing:4px;color:rgba(255,255,255,0.3)}
+.speedo-max{font-size:8px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,0.2)}
+.cv-wrap{position:relative;width:200px;height:120px}
 canvas#cv{display:block}
+.speed-num{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;line-height:1}
 
-/* número sobreposto */
-.speed-num{
-  position:absolute;
-  bottom:10px;
-  left:50%;
-  transform:translateX(-50%);
-  text-align:center;
-  pointer-events:none;
-  line-height:1;
-}
-#sv{
-  font-size:44px;
-  font-weight:900;
-  color:#fff;
-  letter-spacing:-3px;
-  font-variant-numeric:tabular-nums;
-  display:block;
-}
-.su{
-  font-size:8px;
-  font-weight:700;
-  letter-spacing:3.5px;
-  color:rgba(255,255,255,0.28);
-  margin-top:1px;
-  display:block;
-}
+/* Números mais separados */
+#sv{font-size:48px;font-weight:900;color:#fff;letter-spacing:1px;font-variant-numeric:tabular-nums;display:block}
+.su{font-size:9px;font-weight:800;letter-spacing:4px;color:rgba(255,255,255,0.35);margin-top:4px;display:block}
 
-/* barra de velocidade fina */
-.speed-strip{
-  width:100%;
-  height:2px;
-  border-radius:1px;
-  background:rgba(255,255,255,0.05);
-  overflow:hidden;
-  margin-top:10px;
+.speed-strip{width:100%;height:3px;border-radius:1.5px;background:rgba(255,255,255,0.05);overflow:hidden;margin-top:10px}
+#speedStrip{height:100%;border-radius:1.5px;transition:width .12s,background .5s}
+
+/* ── NOVO LAYOUT DE MARCHAS DEDICADO ── */
+.gear-card {
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 65px;
 }
-#speedStrip{
-  height:100%;
-  border-radius:1px;
-  transition:width .12s,background .5s;
+.gear-box {
+  flex: 1;
+  width: 42px;
+  margin-top: 4px;
+  border-radius: 10px;
+  border: 1px dashed rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: border-color 0.3s;
+}
+#gearNum {
+  font-size: 26px; 
+  font-weight: 900; 
+  line-height: 1; 
+  color: #fff; 
+  text-shadow: 0 0 10px currentColor;
+  transition: color .2s;
 }
 
-/* ════════════════════════════════
-   MARCHA (dentro do speedo)
-════════════════════════════════ */
-.gear-float{
-  position:absolute;
-  bottom:14px;
-  right:14px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:2px;
-}
-.gear-label-sm{
-  font-size:7px;
-  font-weight:700;
-  letter-spacing:2px;
-  color:rgba(255,255,255,0.2);
-}
-#gearNum{
-  font-size:22px;
-  font-weight:900;
-  line-height:1;
-  color:#fff;
-  transition:color .2s;
-}
+/* ── COMBUSTÍVEL ── */
+.fuel-card{padding:12px 14px;display:flex;flex-direction:column;align-items:center;gap:7px;width:60px}
+.stat-lbl{font-size:8px;font-weight:800;letter-spacing:2.5px;color:rgba(255,255,255,0.25)}
+.fuel-track{flex:1;width:14px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);position:relative;overflow:hidden;min-height:70px}
+.fuel-seg{position:absolute;width:100%;height:1px;background:rgba(0,0,0,0.6)}
+#fuelFill{position:absolute;bottom:0;width:100%;border-radius:6px;transition:height .6s cubic-bezier(.4,0,.2,1),background .6s}
+#fuelPct{font-size:11px;font-weight:800;color:#fff;letter-spacing: 0.5px;transition:color .5s}
+.fuel-ico{font-size:11px}
 
-/* ════════════════════════════════
-   COMBUSTÍVEL
-════════════════════════════════ */
-.fuel-card{
-  padding:12px 14px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:7px;
-  width:56px;
-}
-.stat-lbl{
-  font-size:7px;
-  font-weight:700;
-  letter-spacing:2px;
-  color:rgba(255,255,255,0.22);
-}
-.fuel-track{
-  flex:1;
-  width:14px;
-  border-radius:7px;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-  position:relative;
-  overflow:hidden;
-  min-height:70px;
-}
-.fuel-seg{
-  position:absolute;
-  width:100%;
-  height:1px;
-  background:rgba(0,0,0,0.6);
-}
-#fuelFill{
-  position:absolute;
-  bottom:0;
-  width:100%;
-  border-radius:6px;
-  transition:height .6s cubic-bezier(.4,0,.2,1),background .6s;
-}
-#fuelPct{
-  font-size:10px;
-  font-weight:800;
-  color:#fff;
-  transition:color .5s;
-}
-.fuel-ico{font-size:10px}
-
-/* ════════════════════════════════
-   LATARIA
-════════════════════════════════ */
-.body-card{
-  padding:12px 14px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:7px;
-  width:70px;
-}
-.car-svg-wrap{
-  display:flex;
-  justify-content:center;
-}
-.dmg-arc-wrap{
-  width:44px;height:44px;
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+/* ── LATARIA ── */
+.body-card{padding:12px 14px;display:flex;flex-direction:column;align-items:center;gap:7px;width:75px}
+.dmg-arc-wrap{width:44px;height:44px;position:relative;display:flex;align-items:center;justify-content:center}
 canvas#cvBody{display:block}
-.body-num-wrap{
-  position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  flex-direction:column;
-}
-#bodyPct{
-  font-size:13px;
-  font-weight:900;
-  color:#fff;
-  line-height:1;
-  transition:color .4s;
-}
-.body-sub2{
-  font-size:6px;
-  font-weight:700;
-  letter-spacing:1px;
-  color:rgba(255,255,255,0.2);
-  margin-top:1px;
-}
+.body-num-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+#bodyPct{font-size:11px;font-weight:900;color:#fff;line-height:1;transition:color .4s}
+.body-sub2{font-size:6px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,0.2);margin-top:2px}
 </style>
 </head>
 <body>
@@ -247,27 +100,26 @@ canvas#cvBody{display:block}
       <span class="speedo-label">VELOCIDADE</span>
       <span class="speedo-max">MAX 220</span>
     </div>
-
     <div class="cv-wrap">
       <canvas id="cv" width="200" height="120"></canvas>
       <div class="speed-num">
         <span id="sv">0</span>
         <span class="su">KM/H</span>
       </div>
-      <!-- marcha flutuante -->
-      <div class="gear-float">
-        <span class="gear-label-sm">MARCHA</span>
+    </div>
+    <div class="speed-strip"><div id="speedStrip"></div></div>
+  </div>
+
+  <!-- STATS LINHA INFERIOR -->
+  <div class="stats-row">
+
+    <!-- NOVO CARD DE MARCHA EXCLUSIVO -->
+    <div class="card gear-card">
+      <div class="stat-lbl">GEAR</div>
+      <div class="gear-box" id="gearBox">
         <span id="gearNum">N</span>
       </div>
     </div>
-
-    <div class="speed-strip">
-      <div id="speedStrip"></div>
-    </div>
-  </div>
-
-  <!-- STATS ABAIXO -->
-  <div class="stats-row">
 
     <!-- COMBUSTÍVEL -->
     <div class="card fuel-card">
@@ -292,10 +144,8 @@ canvas#cvBody{display:block}
           <span class="body-sub2">INT</span>
         </div>
       </div>
-      <!-- mini car icon -->
-      <svg width="44" height="22" viewBox="0 0 44 22" fill="none">
-        <path id="carBody" d="M2 16 L5 10 L11 5 L33 5 L39 10 L42 16 L42 19 L2 19Z"
-              fill="#00d4ff" stroke="rgba(0,212,255,0.15)" stroke-width="0.5"/>
+      <svg width="44" height="22" viewBox="0 0 44 22" fill="none" style="margin-top: 2px;">
+        <path id="carBody" d="M2 16 L5 10 L11 5 L33 5 L39 10 L42 16 L42 19 L2 19Z" fill="#00d4ff" stroke="rgba(0,212,255,0.15)" stroke-width="0.5"/>
         <circle cx="11" cy="19" r="3.5" fill="#080c1a" stroke="#1a1f30" stroke-width="1"/>
         <circle cx="33" cy="19" r="3.5" fill="#080c1a" stroke="#1a1f30" stroke-width="1"/>
         <rect x="9"  y="6" width="9"  height="5" rx="1" fill="rgba(0,200,255,0.28)"/>
@@ -303,7 +153,7 @@ canvas#cvBody{display:block}
         <rect x="2"  y="13" width="4" height="2" rx="1" fill="#ffe060" opacity="0.6"/>
         <rect x="38" y="13" width="4" height="2" rx="1" fill="#ff4444" opacity="0.6"/>
       </svg>
-      <div id="bodyPct2" style="font-size:10px;font-weight:800;color:#fff;transition:color .4s">100%</div>
+      <div id="bodyPct2" style="font-size:10px;font-weight:800;color:#fff;transition:color .4s;display:none;">100%</div>
     </div>
 
   </div>
@@ -311,41 +161,31 @@ canvas#cvBody{display:block}
 
 <script>
 /* ─── CONSTANTES ─── */
-const MAXV = 220;
+var MAXV = 220;
 
 /* ─── ESTADO ─── */
 var S = { speed:0, gear:0, fuel:100, body:100 };
 var A = { speed:0 };
 
-function parseURL(){
-  var q = window.location.search, m;
-  m=q.match(/[?&]v=(\d+)/); if(m) S.speed=parseInt(m[1])||0;
-  m=q.match(/[?&]g=(\d+)/); if(m) S.gear =parseInt(m[1])||0;
-  m=q.match(/[?&]f=(\d+)/); if(m) S.fuel =parseInt(m[1])||100;
-  m=q.match(/[?&]b=(\d+)/); if(m) S.body =parseInt(m[1])||100;
-}
-
 /* ─── VELOCÍMETRO ─── */
-var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
-var W=200,H=120,CX=W/2,CY=H+4;
-var R=98, SA=Math.PI*1.08, EA=Math.PI*1.92, AR=EA-SA;
+var cv  = document.getElementById('cv');
+var ctx = cv.getContext('2d');
+var W=200, H=120, CX=W/2, CY=H+4, R=98;
+var SA = Math.PI*1.08, EA = Math.PI*1.92, AR = EA-SA;
 
-function drawSpeedo(spd){
+function drawSpeedo(spd) {
   ctx.clearRect(0,0,W,H);
-  var f=Math.min(spd/MAXV,1);
+  var f = Math.min(spd/MAXV, 1);
 
-  /* fundo do arco */
   ctx.beginPath(); ctx.arc(CX,CY,R,SA,EA);
   ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=14; ctx.lineCap='round'; ctx.stroke();
 
-  /* arco secundário (brilho interno) */
   ctx.beginPath(); ctx.arc(CX,CY,R-8,SA,EA);
   ctx.strokeStyle='rgba(255,255,255,0.02)'; ctx.lineWidth=4; ctx.lineCap='round'; ctx.stroke();
 
-  /* arco de velocidade */
-  if(f>0){
+  if (f > 0) {
     var hue = f<0.5 ? 165 : f<0.75 ? 165-(f-0.5)/0.25*120 : 45-(f-0.75)/0.25*45;
-    var grad=ctx.createLinearGradient(
+    var grad = ctx.createLinearGradient(
       CX+Math.cos(SA)*R, CY+Math.sin(SA)*R,
       CX+Math.cos(SA+AR*f)*R, CY+Math.sin(SA+AR*f)*R
     );
@@ -354,133 +194,150 @@ function drawSpeedo(spd){
     ctx.beginPath(); ctx.arc(CX,CY,R,SA,SA+AR*f);
     ctx.strokeStyle=grad; ctx.lineWidth=14; ctx.lineCap='round'; ctx.stroke();
 
-    /* glow na ponta */
-    var ta=SA+AR*f;
-    var tx=CX+Math.cos(ta)*R, ty=CY+Math.sin(ta)*R;
-    var g2=ctx.createRadialGradient(tx,ty,0,tx,ty,18);
+    var ta = SA+AR*f;
+    var tx = CX+Math.cos(ta)*R, ty = CY+Math.sin(ta)*R;
+    var g2 = ctx.createRadialGradient(tx,ty,0,tx,ty,18);
     g2.addColorStop(0,'hsla('+hue+',100%,70%,0.5)');
     g2.addColorStop(1,'transparent');
     ctx.beginPath(); ctx.arc(tx,ty,18,0,Math.PI*2);
     ctx.fillStyle=g2; ctx.fill();
   }
 
-  /* ticks */
-  var steps=22;
-  for(var i=0;i<=steps;i++){
-    var a=SA+AR*(i/steps), major=(i%2===0);
-    var rI=R-(major?20:16), rO=R-14;
+  for (var i=0; i<=22; i++) {
+    var a = SA+AR*(i/22), major = (i%2===0);
+    var rI = R-(major?20:16), rO = R-14;
     ctx.beginPath();
     ctx.moveTo(CX+Math.cos(a)*rO, CY+Math.sin(a)*rO);
     ctx.lineTo(CX+Math.cos(a)*rI, CY+Math.sin(a)*rI);
-    ctx.strokeStyle=major?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.12)';
-    ctx.lineWidth=major?1.5:0.7; ctx.stroke();
-    if(major){
-      ctx.fillStyle='rgba(255,255,255,0.32)';
+    ctx.strokeStyle = major?'rgba(255,255,255,0.35)':'rgba(255,255,255,0.08)';
+    ctx.lineWidth = major?1.5:0.7; ctx.stroke();
+    if (major) {
+      ctx.fillStyle='rgba(255,255,255,0.25)';
       ctx.font='600 7px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.fillText(Math.round(i/steps*MAXV/20)*20,
-        CX+Math.cos(a)*(R-30), CY+Math.sin(a)*(R-30));
+      ctx.fillText(Math.round(i/22*MAXV/20)*20, CX+Math.cos(a)*(R-30), CY+Math.sin(a)*(R-30));
     }
   }
 
-  /* ponteiro */
-  var na=SA+AR*f;
+  var na = SA+AR*f;
   ctx.save(); ctx.translate(CX,CY); ctx.rotate(na);
   ctx.shadowColor='rgba(255,255,255,0.2)'; ctx.shadowBlur=8;
   ctx.beginPath(); ctx.moveTo(-8,0); ctx.lineTo(R-24,0);
   ctx.strokeStyle='#fff'; ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-8,0); ctx.lineTo(-22,0);
-  ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=1.5; stroke();
   ctx.restore(); ctx.shadowBlur=0;
 
-  /* pivot */
   ctx.beginPath(); ctx.arc(CX,CY,6,0,Math.PI*2);
   ctx.fillStyle='#fff'; ctx.fill();
   ctx.beginPath(); ctx.arc(CX,CY,3,0,Math.PI*2);
   ctx.fillStyle='#04060f'; ctx.fill();
 }
 
-/* ─── LATARIA (arc circular) ─── */
-var cvB=document.getElementById('cvBody'), ctxB=cvB.getContext('2d');
-var BW=44, BH=44, BCX=22, BCY=22, BR=17;
+/* ─── LATARIA ARC ─── */
+var cvB  = document.getElementById('cvBody');
+var ctxB = cvB.getContext('2d');
 
-function drawBody(pct){
-  ctxB.clearRect(0,0,BW,BH);
-  var f=Math.min(pct/100,1);
+function drawBody(pct) {
+  ctxB.clearRect(0,0,44,44);
+  var f = Math.min(pct/100, 1);
   var col = pct>60?'#00d4ff': pct>30?'#ffcc00':'#ff3a3a';
 
-  /* fundo */
-  ctxB.beginPath(); ctxB.arc(BCX,BCY,BR,-Math.PI*0.75,Math.PI*0.75);
+  ctxB.beginPath(); ctxB.arc(22,22,17,-Math.PI*0.75,Math.PI*0.75);
   ctxB.strokeStyle='rgba(255,255,255,0.06)'; ctxB.lineWidth=4; ctxB.lineCap='round'; ctxB.stroke();
 
-  /* arco de integridade */
-  if(f>0){
-    var range=Math.PI*1.5;
-    ctxB.beginPath();
-    ctxB.arc(BCX,BCY,BR,-Math.PI*0.75,-Math.PI*0.75+range*f);
+  if (f > 0) {
+    var range = Math.PI*1.5;
+    ctxB.beginPath(); ctxB.arc(22,22,17,-Math.PI*0.75,-Math.PI*0.75+range*f);
     ctxB.strokeStyle=col; ctxB.lineWidth=4; ctxB.lineCap='round'; ctxB.stroke();
   }
 
-  /* atualiza textos e cor do carro */
-  document.getElementById('bodyPct').style.color=col;
-  document.getElementById('bodyPct2').textContent=Math.round(pct)+'%';
-  document.getElementById('bodyPct2').style.color=col;
-  var carPath=document.getElementById('carBody');
-  if(pct>60) carPath.setAttribute('fill','#00d4ff');
-  else if(pct>30) carPath.setAttribute('fill','#cc8800');
-  else carPath.setAttribute('fill','#991111');
+  document.getElementById('bodyPct').textContent = Math.round(pct)+'%';
+  document.getElementById('bodyPct').style.color = col;
+  document.getElementById('bodyPct2').textContent = Math.round(pct)+'%';
+  document.getElementById('bodyPct2').style.color = col;
+  var cp = document.getElementById('carBody');
+  cp.setAttribute('fill', pct>60?'#00d4ff': pct>30?'#cc8800':'#991111');
 }
 
-/* ─── MARCHA ─── */
-var GC=['rgba(255,255,255,0.2)','#1aff9c','#00d4ff','#00d4ff','#ffcc00','#ff8c00','#ff3a3a'];
-var GL=['N','1','2','3','4','5','6'];
-
-function updateGear(g){
-  var c=GC[g]||'#fff';
-  document.getElementById('gearNum').textContent=GL[g]||'N';
-  document.getElementById('gearNum').style.color=c;
+/* ─── NOVO COMPORTAMENTO DA MARCHA ─── */
+var GC = ['rgba(255,255,255,0.3)','#1aff9c','#00d4ff','#00d4ff','#ffcc00','#ff8c00','#ff3a3a'];
+var GL = ['N','1','2','3','4','5','6'];
+function updateGear(g) {
+  var gearElement = document.getElementById('gearNum');
+  var boxElement = document.getElementById('gearBox');
+  var activeColor = GC[g] || '#fff';
+  
+  gearElement.textContent = GL[g] || 'N';
+  gearElement.style.color = activeColor;
+  
+  // Customização dinâmica da borda do container baseado na marcha
+  if(g === 0) {
+    boxElement.style.borderColor = 'rgba(255,255,255,0.15)';
+    boxElement.style.borderStyle = 'dashed';
+  } else {
+    boxElement.style.borderColor = activeColor;
+    boxElement.style.borderStyle = 'solid';
+  }
 }
 
 /* ─── COMBUSTÍVEL ─── */
-function updateFuel(pct){
-  var bar=document.getElementById('fuelFill');
-  var lbl=document.getElementById('fuelPct');
-  bar.style.height=Math.max(pct,0)+'%';
-  if(pct>50){ bar.style.background='linear-gradient(to top,#00a854,#1aff9c)'; lbl.style.color='#1aff9c'; }
-  else if(pct>20){ bar.style.background='linear-gradient(to top,#996200,#ffcc00)'; lbl.style.color='#ffcc00'; }
+function updateFuel(pct) {
+  var bar = document.getElementById('fuelFill');
+  var lbl = document.getElementById('fuelPct');
+  bar.style.height = Math.max(pct,0)+'%';
+  if (pct>50) { bar.style.background='linear-gradient(to top,#00a854,#1aff9c)'; lbl.style.color='#1aff9c'; }
+  else if (pct>20) { bar.style.background='linear-gradient(to top,#996200,#ffcc00)'; lbl.style.color='#ffcc00'; }
   else { bar.style.background='linear-gradient(to top,#880000,#ff3a3a)'; lbl.style.color='#ff3a3a'; }
-  document.getElementById('fuelIco').textContent=pct<=15?'⚠️':'⛽';
-  lbl.textContent=Math.round(pct)+'%';
+  document.getElementById('fuelIco').textContent = pct<=15?'⚠️':'⛽';
+  lbl.textContent = Math.round(pct)+'%';
 }
 
 /* ─── BARRA DE VELOCIDADE ─── */
-function updateStrip(spd){
-  var f=Math.min(spd/MAXV,1);
-  var hue=f<0.5?165:f<0.75?165-(f-0.5)/0.25*120:45-(f-0.75)/0.25*45;
-  var strip=document.getElementById('speedStrip');
-  strip.style.width=(f*100)+'%';
-  strip.style.background='hsl('+hue+',100%,60%)';
+function updateStrip(spd) {
+  var f = Math.min(spd/MAXV, 1);
+  var hue = f<0.5?165: f<0.75?165-(f-0.5)/0.25*120: 45-(f-0.75)/0.25*45;
+  document.getElementById('speedStrip').style.width = (f*100)+'%';
+  document.getElementById('speedStrip').style.background = 'hsl('+hue+',100%,60%)';
 }
 
-/* ─── LOOP ─── */
-function tick(){
-  parseURL();
-  A.speed+=(S.speed-A.speed)*0.14;
+/* ─── RENDER ─── */
+function render() {
+  A.speed += (S.speed - A.speed) * 0.14;
   drawSpeedo(A.speed);
-  document.getElementById('sv').textContent=Math.round(A.speed);
+  document.getElementById('sv').textContent = Math.round(A.speed);
   updateStrip(A.speed);
   updateGear(S.gear);
   updateFuel(S.fuel);
   drawBody(S.body);
-  requestAnimationFrame(tick);
+  requestAnimationFrame(render);
 }
 
-parseURL();
-A.speed=S.speed;
+/* ─── CEF EVENTS ─── */
+if (typeof cef !== 'undefined') {
+  cef.on('hud:update', function(speed, gear, fuel, body) {
+    S.speed = speed;
+    S.gear  = gear;
+    S.fuel  = fuel;
+    S.body  = body;
+  });
+} else {
+  /* Fallback para teste URL */
+  (function(){
+    var q = window.location.search, m;
+    m=q.match(/[?&]v=(\d+)/); if(m) S.speed=parseInt(m[1])||0;
+    m=q.match(/[?&]g=(\d+)/); if(m) S.gear =parseInt(m[1])||0;
+    m=q.match(/[?&]f=(\d+)/); if(m) S.fuel =parseInt(m[1])||100;
+    m=q.match(/[?&]b=(\d+)/); if(m) S.body =parseInt(m[1])||100;
+  })();
+}
+
+/* ─── INIT ─── */
+A.speed = S.speed;
 drawSpeedo(A.speed);
 updateGear(S.gear);
 updateFuel(S.fuel);
 drawBody(S.body);
-requestAnimationFrame(tick);
+requestAnimationFrame(render);
 </script>
 </body>
 </html>
